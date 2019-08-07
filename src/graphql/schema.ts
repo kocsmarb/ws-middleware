@@ -77,6 +77,7 @@ const typeDefs = gql`
     firstName: String
     lastName: String
     address: String
+    phone: String
     items: [OrderInputItem]
   }
 

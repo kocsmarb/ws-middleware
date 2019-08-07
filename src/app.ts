@@ -1,7 +1,6 @@
 import { ApolloServer } from 'apollo-server';
 import { createConnection } from 'typeorm';
 import { typeOrmConfig } from './config';
-
 import { typeDefs } from './graphql/schema';
 import { createResolvers } from './graphql/resolvers';
 import context from './graphql/context';
@@ -11,6 +10,7 @@ createConnection(typeOrmConfig).then(() => {
     typeDefs,
     resolvers: createResolvers(),
     context,
+    subscriptions: false,
   });
 
   server.listen().then(({ url }) => {

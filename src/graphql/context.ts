@@ -1,9 +1,26 @@
 import jwt from 'jsonwebtoken';
+import hash from 'object-hash';
 
-const getUser = token => {
+// TODO: it is just a dummy fingerprint
+const getFingetprint = headers =>
+  hash([
+    headers.origin,
+    headers['user-agent'],
+    headers['accept-encoding'],
+    headers['accept-language'],
+    process.env.HASH_GEN_SALT,
+  ]);
+
+const compareFingerprint = (f1, f2) => f1 === f2;
+
+const getUser = (token, fingerprint) => {
   try {
     if (token) {
-      return jwt.verify(token, 'my-secret-from-env-file-in-prod');
+      const user: any = jwt.verify(token, process.env.JWT_PRIVATE_KEY);
+      if (!compareFingerprint(user.fingerprint, fingerprint)) {
+        throw new Error('Fingerprint missmatch');
+      }
+      return user;
     }
     return null;
   } catch (err) {
@@ -11,13 +28,16 @@ const getUser = token => {
   }
 };
 
-const context = ({ req }) => {
+const context = async ({ req }) => {
   const tokenWithBearer = req.headers.authorization || '';
   const token = tokenWithBearer.split(' ')[1];
-  const currentUser = getUser(token);
+  const fingerprint = getFingetprint(req.headers);
+  const currentUser = getUser(token, fingerprint);
 
   return {
     currentUser,
+    fingerprint,
+    getFingetprint: () => fingerprint,
   };
 };
 

@@ -9,6 +9,9 @@ export default class Shipment {
   @Column('varchar', { length: 255 })
   address: string;
 
+  @Column('varchar', { length: 255, default: null })
+  phone: string;
+
   @OneToOne(type => Order, order => order.shipment)
   order: Order;
 }

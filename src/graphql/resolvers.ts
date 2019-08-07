@@ -14,8 +14,8 @@ const createResolvers = () => {
 
   return {
     Query: {
-      users: () => userRepository.find(),
-      user: (_, { id }) => userRepository.findOne(id),
+      users: async () => await userRepository.find(),
+      user: async (_, { id }) => await userRepository.findOne(id),
       products: () => productRepository.find(),
       product: (_, { id }) => productRepository.findOne(id),
       productsByCategory: (_, { category }) =>
@@ -70,10 +70,11 @@ const createResolvers = () => {
           {
             id: user.id,
             username: user.email,
+            fingerprint: ctx.getFingetprint(),
           },
-          'my-secret-from-env-file-in-prod',
+          process.env.JWT_PRIVATE_KEY,
           {
-            expiresIn: '30d', // token will expire in 30days
+            expiresIn: process.env.JWT_EXPIRES_IN,
           },
         );
         return {
@@ -89,6 +90,7 @@ const createResolvers = () => {
         order.user = user;
         order.shipment = new Shipment();
         order.shipment.address = input.address;
+        order.shipment.phone = input.phone;
         order.items = await Promise.all(
           input.items.map(async item => {
             const orderItem = new OrderItem();
